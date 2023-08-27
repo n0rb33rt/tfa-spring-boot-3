@@ -1,11 +1,8 @@
 package com.norbert.tfa.authentication;
 
 import com.norbert.tfa.authentication.request.TFAConfirmationRequest;
-import com.norbert.tfa.authentication.request.VerificationRequest;
-import com.norbert.tfa.authentication.response.AuthenticationResponse;
 import com.norbert.tfa.authentication.response.TFAEnablingResponse;
 import com.norbert.tfa.exception.TFAException;
-import com.norbert.tfa.jwt.JwtTokenService;
 import com.norbert.tfa.user.User;
 import com.norbert.tfa.user.UserDetailsImpl;
 import com.norbert.tfa.user.UserService;
@@ -22,7 +19,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 
@@ -31,7 +27,6 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class TwoFactorAuthenticationService {
     private final UserService userService;
-    private final JwtTokenService jwtTokenService;
     public String generateSecret() {
         return new DefaultSecretGenerator().generate();
     }
@@ -69,9 +64,8 @@ public class TwoFactorAuthenticationService {
     ) {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = userDetails.getUser();
-        if (isOtpNotValid(request.secretKey(), request.code())) {
+        if (isOtpNotValid(request.secretKey(), request.code()))
             throw new BadCredentialsException("Code is not correct");
-        }
         user.setTfaEnabled(true);
         user.setTfaSecret(request.secretKey());
         userService.save(user);

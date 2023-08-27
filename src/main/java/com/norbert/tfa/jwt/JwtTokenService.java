@@ -39,7 +39,7 @@ public class JwtTokenService {
         return extractExpiration(token).before(new Date(System.currentTimeMillis()));
     }
 
-    public boolean isAuthHeaderValid(String authHeader){
+    public boolean isAuthHeaderNotValid(String authHeader){
         return authHeader == null || !authHeader.startsWith(BEARER_PREFIX);
     }
 

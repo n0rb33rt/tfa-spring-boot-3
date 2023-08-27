@@ -27,7 +27,7 @@ public class LogoutService implements LogoutHandler {
             HttpServletResponse response,
             Authentication authentication) {
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if(jwtTokenService.isAuthHeaderValid(authHeader)){
+        if(jwtTokenService.isAuthHeaderNotValid(authHeader)){
             jwtTokenService.handleTokenException(response, ExceptionMessage.UNAUTHORIZED_ERROR_MESSAGE);
             return;
         }
