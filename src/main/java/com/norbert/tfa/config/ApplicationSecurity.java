@@ -27,7 +27,7 @@ public class ApplicationSecurity {
 
         http
                 .authorizeHttpRequests(request -> request.requestMatchers(
-                                "/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/2fa/verify","/api/v1/2fa/enable"
+                                "/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/2fa/verify"
                                 ).permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(httpSecuritySessionManagementConfigurer ->

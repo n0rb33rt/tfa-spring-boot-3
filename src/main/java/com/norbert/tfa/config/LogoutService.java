@@ -25,7 +25,8 @@ public class LogoutService implements LogoutHandler {
     public void logout (
             HttpServletRequest request,
             HttpServletResponse response,
-            Authentication authentication) {
+            Authentication authentication
+    ) {
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if(jwtTokenService.isAuthHeaderNotValid(authHeader)){
             jwtTokenService.handleTokenException(response, ExceptionMessage.UNAUTHORIZED_ERROR_MESSAGE);
@@ -38,5 +39,4 @@ public class LogoutService implements LogoutHandler {
             jwtTokenRepository.save(storedToken);
         }
     }
-
 }

@@ -27,10 +27,17 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
 
     public AuthenticationResponse register(RegistrationRequest request) {
-        if (userService.isUserPresent(request.email())) {
+        if (userService.isUserPresent(request.email()))
             throw new BadRegistrationRequest("Email is already taken, try to use another");
-        }
-        final User user = User.builder()
+        final User user = buildUser(request);
+        userService.save(user);
+        final String jwtToken = jwtTokenService.generateToken(new UserDetailsImpl(user));
+        return AuthenticationResponse.builder()
+                .accessToken(jwtToken)
+                .build();
+    }
+    private User buildUser(RegistrationRequest request){
+        return User.builder()
                 .tfaEnabled(false)
                 .tfaSecret(null)
                 .role(Role.USER)
@@ -38,11 +45,6 @@ public class AuthenticationService {
                 .lastName(request.lastName())
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
-                .build();
-        userService.save(user);
-        final String jwtToken = jwtTokenService.generateToken(new UserDetailsImpl(user));
-        return AuthenticationResponse.builder()
-                .accessToken(jwtToken)
                 .build();
     }
 
@@ -70,9 +72,8 @@ public class AuthenticationService {
     public AuthenticationResponse verify(VerificationRequest request) {
         authenticateByManager(request);
         User user = userService.findByEmail(request.getEmail());
-        if (!user.isTfaEnabled() || tfaService.isOtpNotValid(user.getTfaSecret(), request.getCode())) {
+        if (!user.isTfaEnabled() || tfaService.isOtpNotValid(user.getTfaSecret(), request.getCode()))
             throw new BadCredentialsException("Code is not correct");
-        }
         final String jwtToken = jwtTokenService.generateToken(new UserDetailsImpl(user));
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken)

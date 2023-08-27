@@ -32,23 +32,27 @@ public class TwoFactorAuthenticationService {
     }
 
     public String generateQrCodeImageUri(String secret) {
-        QrData data = new QrData.Builder()
+        try {
+            QrData data = buildQrData(secret);
+            QrGenerator qrGenerator = new ZxingPngQrGenerator();
+            byte[] imageData = qrGenerator.generate(data);
+            return Utils.getDataUriForImage(imageData, qrGenerator.getImageMimeType());
+        }catch (QrGenerationException exception){
+            throw new TFAException("Error while generating a QR-code");
+        }
+    }
+
+    private QrData buildQrData(String secret){
+        return new QrData.Builder()
                 .label("Two-factor Authentication Example")
                 .issuer("Norbert's application")
                 .secret(secret)
-                .algorithm(HashingAlgorithm.SHA1)
+                .algorithm(HashingAlgorithm.SHA512)
                 .digits(6)
                 .period(30)
                 .build();
-        QrGenerator qrGenerator = new ZxingPngQrGenerator();
-        byte[] imageData = new byte[0];
-        try {
-            imageData = qrGenerator.generate(data);
-        }catch (QrGenerationException e){
-            log.info("Error while generating a QR-code");
-        }
-        return Utils.getDataUriForImage(imageData,qrGenerator.getImageMimeType());
     }
+
     public boolean isOtpValid(String secret,String code){
         TimeProvider timeProvider = new SystemTimeProvider();
         CodeGenerator codeGenerator = new DefaultCodeGenerator();
@@ -59,11 +63,8 @@ public class TwoFactorAuthenticationService {
         return !this.isOtpValid(secret,code);
     }
 
-    public void confirmEnablingTFA(
-            TFAConfirmationRequest request
-    ) {
-        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User user = userDetails.getUser();
+    public void confirmEnablingTFA(TFAConfirmationRequest request) {
+        User user = pullUserFromSecurityContextHolder();
         if (isOtpNotValid(request.secretKey(), request.code()))
             throw new BadCredentialsException("Code is not correct");
         user.setTfaEnabled(true);
@@ -71,8 +72,7 @@ public class TwoFactorAuthenticationService {
         userService.save(user);
     }
     public TFAEnablingResponse enable(){
-        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User user = userDetails.getUser();
+       User user = pullUserFromSecurityContextHolder();
         if(user.isTfaEnabled())
             throw new TFAException("Two-factor authentication is already on");
         final String tfaSecretKey = generateSecret();
@@ -81,6 +81,10 @@ public class TwoFactorAuthenticationService {
                 .secretImageUri(tfaSecretImageUri)
                 .secretKey(tfaSecretKey)
                 .build();
+    }
+    private User pullUserFromSecurityContextHolder(){
+        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return userDetails.getUser();
     }
 
 }
