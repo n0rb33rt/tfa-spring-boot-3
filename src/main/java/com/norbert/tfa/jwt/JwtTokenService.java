@@ -24,9 +24,9 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class JwtTokenService {
     private final JwtDAO jwtDAO;
-    @Value("${jwt_secret_key}")
+    @Value("${application.security.jwt.secret-key}")
     private String JWT_SECRET_KEY;
-    @Value("${jwt_expiration_time}")
+    @Value("${application.security.jwt.expiration}")
     private Long JWT_EXPIRATION_TIME;
     private final static Integer BEARER_PREFIX_LENGTH = 7;
     private final static String BEARER_PREFIX = "Bearer ";
@@ -102,7 +102,7 @@ public class JwtTokenService {
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis()+ JWT_EXPIRATION_TIME))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 

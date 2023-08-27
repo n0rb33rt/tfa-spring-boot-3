@@ -41,7 +41,6 @@ public class TwoFactorAuthenticationService {
             throw new TFAException("Error while generating a QR-code");
         }
     }
-
     private QrData buildQrData(String secret){
         return new QrData.Builder()
                 .label("Two-factor Authentication Example")
