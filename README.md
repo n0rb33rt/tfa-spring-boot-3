@@ -16,6 +16,7 @@ This project demonstrates the implementation of security using Spring Boot 3.1.2
 ## Technologies Used
 
 - Spring Boot 3.1.2
+- Flyway for managing database changes as your application evolves
 - Spring Security
 - JSON Web Tokens (JWT)
 - Two-Factor Authentication
